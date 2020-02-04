@@ -33,6 +33,8 @@ def count(args):
     sys.stderr.write("[NOTE] Masking: %s\n" % str(mask))
 
     counts = {}
+    total_num_hits = 0
+    total_num_unmasked_hits = 0
     total_bp = 0
     total_unmasked_bp = 0
     with open(args.input) as kh:
@@ -56,9 +58,11 @@ def count(args):
             counts[hit_tax]["n"] += 1
 
             total_bp += hit_len
+            total_num_hits += 1
 
             if hit_tax not in mask:
                 total_unmasked_bp += hit_len
+                total_num_unmasked_hits += 1
 
     for tax_id in counts:
 
@@ -71,14 +75,18 @@ def count(args):
                 name = tax_id
 
         unmasked_total = 0
+        unmasked_count = 0
         if tax_id not in mask:
             unmasked_total = counts[tax_id]["bp"]/total_unmasked_bp*100.0
+            unmasked_count = counts[tax_id]["n"]/total_num_unmasked_hits*100.0
         print("\t".join([str(x) for x in [
             tax_id,
             name,
-            counts[tax_id]["n"],
-            counts[tax_id]["bp"],
             counts[tax_id]["bp"]/counts[tax_id]["n"],
+            counts[tax_id]["n"],
+            counts[tax_id]["n"]/total_num_hits*100.0,
+            unmasked_count,
+            counts[tax_id]["bp"],
             counts[tax_id]["bp"]/total_bp*100.0,
             unmasked_total,
         ]]))
