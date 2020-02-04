@@ -25,6 +25,7 @@ def _get_tid_for_rank(tree, rank, tid):
 
 def count(args):
     tree = _load_dump(args.dump)
+    cache_map = {}
 
     mask = [_get_tid_for_rank(tree, args.rank, x) for x in args.mask]
     mask.extend(args.mask)
@@ -43,7 +44,9 @@ def count(args):
                 # Get the taxid from the --use-names output
                 hit_tax = int(fields[2].split("taxid ")[1][:-1])
 
-            hit_tax = _get_tid_for_rank(tree, args.rank, hit_tax)
+            if hit_tax not in cache_map:
+                cache_map[hit_tax] = _get_tid_for_rank(tree, args.rank, hit_tax)
+            hit_tax = cache_map[hit_tax]
 
             hit_len = int(fields[3])
 
