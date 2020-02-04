@@ -51,8 +51,10 @@ def count(args):
             hit_len = int(fields[3])
 
             if hit_tax not in counts:
-                counts[hit_tax] = 0
-            counts[hit_tax] += hit_len
+                counts[hit_tax] = {"bp": 0, "n": 0}
+            counts[hit_tax]["bp"] += hit_len
+            counts[hit_tax]["n"] += 1
+
             total_bp += hit_len
 
             if hit_tax not in mask:
@@ -70,12 +72,14 @@ def count(args):
 
         unmasked_total = 0
         if tax_id not in mask:
-            unmasked_total = counts[tax_id]/total_unmasked_bp*100.0
+            unmasked_total = counts[tax_id]["bp"]/total_unmasked_bp*100.0
         print("\t".join([str(x) for x in [
             tax_id,
             name,
-            counts[tax_id],
-            counts[tax_id]/total_bp*100.0,
+            counts[tax_id]["n"],
+            counts[tax_id]["bp"],
+            counts[tax_id]["bp"]/counts[tax_id]["n"],
+            counts[tax_id]["bp"]/total_bp*100.0,
             unmasked_total,
         ]]))
 
