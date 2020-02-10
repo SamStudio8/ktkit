@@ -8,26 +8,26 @@ def _load_dump(path):
 
 def _get_tid_for_rank(tree, rank, tid):
     if tid == 0:
-        return 0
+        return ("unclassified", 0)
 
     try:
         lineage = tree.getAscendantsWithRanksAndNames([tid])[tid]
     except KeyError:
         sys.stderr.write("[WARN] Taxon ID %d not found in NCBI Dump\n" % tid)
-        return tid
+        return (tid, tid)
 
     for node in lineage:
         if node.rank == rank:
-            return node.taxid
+            return (node.name, node.taxid)
     sys.stderr.write("Rank %s not found for taxon %d\n" % (rank, tid))
-    return 1
+    return ("root", 1)
 
 
-def count(args):
+def read_file(args):
     tree = _load_dump(args.dump)
     cache_map = {}
 
-    mask = [_get_tid_for_rank(tree, args.rank, x) for x in args.mask]
+    mask = [_get_tid_for_rank(tree, args.rank, x)[1] for x in args.mask]
     mask.extend(args.mask)
     mask.extend([0, 1])
     sys.stderr.write("[NOTE] Masking: %s\n" % str(mask))
@@ -47,8 +47,8 @@ def count(args):
 
         if hit_tax not in cache_map:
             cache_map[hit_tax] = _get_tid_for_rank(tree, args.rank, hit_tax)
-        hit_tax = cache_map[hit_tax]
-
+        old_tax = hit_tax
+        hit_tax = cache_map[hit_tax][1]
         try:
             hit_len = int(fields[3])
         except ValueError:
@@ -66,6 +66,14 @@ def count(args):
         if hit_tax not in mask:
             total_unmasked_bp += hit_len
             total_num_unmasked_hits += 1
+
+        if args.mode == "rollup":
+            fields.append(hit_tax)
+            fields.append(cache_map[old_tax][0])
+            sys.stdout.write("\t".join([str(x) for x in fields]) + '\n')
+
+    if not args.mode == "count":
+        return
 
     for tax_id in counts:
 
@@ -124,7 +132,8 @@ def cli():
         return
 
     modes = {
-        "count": count,
+        "count": read_file,
+        "rollup": read_file,
     }
     if args.mode in modes:
         modes[args.mode](args)
