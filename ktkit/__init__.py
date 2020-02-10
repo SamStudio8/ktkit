@@ -68,6 +68,8 @@ def read_file(args):
             total_num_unmasked_hits += 1
 
         if args.mode == "rollup":
+            if not args.keepk:
+                del fields[4]
             fields.append(hit_tax)
             fields.append(cache_map[old_tax][0])
             sys.stdout.write("\t".join([str(x) for x in fields]) + '\n')
@@ -115,6 +117,7 @@ def cli():
     parser.add_argument("--rank",help="Rank to output [default: species]", default="species")
     parser.add_argument("--dump", help="Path to NCBI taxonomy dump [default: ~/.ktkit/]", default="~/.ktkit")
     parser.add_argument("--mask", help="NCBI Taxon IDs to suppress in primary counts [default: 9606]", default="9606")
+    parser.add_argument("--keepk", help="Keep k-mer breakdown output [default: False]", action="store_true", default=False)
 
     args = parser.parse_args()
 
