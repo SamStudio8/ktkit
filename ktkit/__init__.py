@@ -37,32 +37,35 @@ def count(args):
     total_num_unmasked_hits = 0
     total_bp = 0
     total_unmasked_bp = 0
-    with open(args.input) as kh:
-        for line in kh:
-            fields = line.strip().split("\t")
-            try:
-                hit_tax = int(fields[2])
-            except ValueError:
-                # Get the taxid from the --use-names output
-                hit_tax = int(fields[2].split("taxid ")[1][:-1])
+    for line in args.input:
+        fields = line.strip().split("\t")
+        try:
+            hit_tax = int(fields[2])
+        except ValueError:
+            # Get the taxid from the --use-names output
+            hit_tax = int(fields[2].split("taxid ")[1][:-1])
 
-            if hit_tax not in cache_map:
-                cache_map[hit_tax] = _get_tid_for_rank(tree, args.rank, hit_tax)
-            hit_tax = cache_map[hit_tax]
+        if hit_tax not in cache_map:
+            cache_map[hit_tax] = _get_tid_for_rank(tree, args.rank, hit_tax)
+        hit_tax = cache_map[hit_tax]
 
+        try:
             hit_len = int(fields[3])
+        except ValueError:
+            # Sum the pair
+            hit_len = sum([int(x) for x in fields[3].split("|")])
 
-            if hit_tax not in counts:
-                counts[hit_tax] = {"bp": 0, "n": 0}
-            counts[hit_tax]["bp"] += hit_len
-            counts[hit_tax]["n"] += 1
+        if hit_tax not in counts:
+            counts[hit_tax] = {"bp": 0, "n": 0}
+        counts[hit_tax]["bp"] += hit_len
+        counts[hit_tax]["n"] += 1
 
-            total_bp += hit_len
-            total_num_hits += 1
+        total_bp += hit_len
+        total_num_hits += 1
 
-            if hit_tax not in mask:
-                total_unmasked_bp += hit_len
-                total_num_unmasked_hits += 1
+        if hit_tax not in mask:
+            total_unmasked_bp += hit_len
+            total_num_unmasked_hits += 1
 
     for tax_id in counts:
 
@@ -103,9 +106,15 @@ def cli():
     parser.add_argument("input")
     parser.add_argument("--rank",help="Rank to output [default: species]", default="species")
     parser.add_argument("--dump", help="Path to NCBI taxonomy dump [default: ~/.ktkit/]", default="~/.ktkit")
-    parser.add_argument("--mask", help="NCBI Taxon IDs to suppress [default: 9606]", default="9606")
+    parser.add_argument("--mask", help="NCBI Taxon IDs to suppress in primary counts [default: 9606]", default="9606")
 
     args = parser.parse_args()
+
+    if args.input == "-":
+        args.input = sys.stdin
+    else:
+        args.input = open(args.input)
+
     args.dump = os.path.expanduser(args.dump)
     args.mask = [int(x) for x in args.mask.split(",")]
 
