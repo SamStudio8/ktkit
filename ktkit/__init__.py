@@ -74,13 +74,14 @@ def read_file(args):
         if args.mode == "rollup":
             if not args.keepk:
                 fields[4] = '*'
+            fields[2] = fields[2].replace(' ', '_')
 
             if hit_tax not in only:
                 fields.append(hit_tax)
                 fields.append("other")
             else:
                 fields.append(hit_tax)
-                fields.append(cache_map[old_tax][0])
+                fields.append(cache_map[old_tax][0].replace(' ', '_'))
             sys.stdout.write("\t".join([str(x) for x in fields]) + '\n')
 
     if not args.mode == "count":
