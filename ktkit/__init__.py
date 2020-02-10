@@ -34,7 +34,7 @@ def read_file(args):
 
     only = [_get_tid_for_rank(tree, args.rank, x)[1] for x in args.only]
     only.extend(args.only)
-    sys.stderr.write("[NOTE] Watching: %s\n" % str(mask))
+    sys.stderr.write("[NOTE] Watching: %s\n" % str(only))
 
     counts = {}
     total_num_hits = 0
@@ -75,7 +75,7 @@ def read_file(args):
             if not args.keepk:
                 fields[4] = '*'
 
-            if hit_tax not in mask:
+            if hit_tax not in only:
                 fields.append(hit_tax)
                 fields.append("other")
             else:
