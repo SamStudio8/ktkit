@@ -32,6 +32,10 @@ def read_file(args):
     mask.extend([0, 1])
     sys.stderr.write("[NOTE] Masking: %s\n" % str(mask))
 
+    only = [_get_tid_for_rank(tree, args.rank, x)[1] for x in args.only]
+    only.extend(args.only)
+    sys.stderr.write("[NOTE] Watching: %s\n" % str(mask))
+
     counts = {}
     total_num_hits = 0
     total_num_unmasked_hits = 0
@@ -69,9 +73,14 @@ def read_file(args):
 
         if args.mode == "rollup":
             if not args.keepk:
-                del fields[4]
-            fields.append(hit_tax)
-            fields.append(cache_map[old_tax][0])
+                fields[4] = '*'
+
+            if hit_tax not in mask:
+                fields.append(hit_tax)
+                fields.append("other")
+            else:
+                fields.append(hit_tax)
+                fields.append(cache_map[old_tax][0])
             sys.stdout.write("\t".join([str(x) for x in fields]) + '\n')
 
     if not args.mode == "count":
@@ -116,7 +125,8 @@ def cli():
     parser.add_argument("input")
     parser.add_argument("--rank",help="Rank to output [default: species]", default="species")
     parser.add_argument("--dump", help="Path to NCBI taxonomy dump [default: ~/.ktkit/]", default="~/.ktkit")
-    parser.add_argument("--mask", help="NCBI Taxon IDs to suppress in primary counts [default: 9606]", default="9606")
+    parser.add_argument("--mask", help="[count] NCBI Taxon IDs to suppress in primary counts [default: 9606]", default="9606")
+    parser.add_argument("--only", help="[rollup] Report any NCBI Taxon IDs not in this list as 'other' [default: ]", default="")
     parser.add_argument("--keepk", help="Keep k-mer breakdown output [default: False]", action="store_true", default=False)
 
     args = parser.parse_args()
@@ -127,7 +137,16 @@ def cli():
         args.input = open(args.input)
 
     args.dump = os.path.expanduser(args.dump)
-    args.mask = [int(x) for x in args.mask.split(",")]
+
+    if len(args.mask) > 0:
+        args.mask = [int(x) for x in args.mask.split(",")]
+    else:
+        args.mask = []
+
+    if len(args.only) > 0:
+        args.only = [int(x) for x in args.only.split(",")]
+    else:
+        args.only = []
 
     if not check(args):
         sys.stderr.write("NCBI dump not found in %s\n" % args.dump)
