@@ -152,7 +152,7 @@ def cli():
     if not check(args):
         sys.stderr.write("NCBI dump not found in %s\n" % args.dump)
         sys.stderr.write("mkdir -p %s; cd %s; wget ftp://ftp.ncbi.nih.gov/pub/taxonomy/taxdump.tar.gz; tar xvf taxdump.tar.gz\n" % (args.dump, args.dump))
-        return
+        sys.exit(1)
 
     modes = {
         "count": read_file,
