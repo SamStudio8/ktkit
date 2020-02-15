@@ -76,7 +76,7 @@ def read_file(args):
                 fields[4] = '*'
             fields[2] = fields[2].replace(' ', '_')
 
-            if hit_tax not in only:
+            if len(only)>0 and hit_tax not in only:
                 fields.append(hit_tax)
                 fields.append("other")
             else:
