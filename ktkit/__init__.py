@@ -81,7 +81,7 @@ def read_file(args):
                 fields.append("other")
             else:
                 fields.append(hit_tax)
-                fields.append(cache_map[old_tax][0].replace(' ', '_'))
+                fields.append(str(cache_map[old_tax][0]).replace(' ', '_'))
             sys.stdout.write("\t".join([str(x) for x in fields]) + '\n')
 
     if not args.mode == "count":
